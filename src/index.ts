@@ -22,13 +22,14 @@ const PORT = process.env.PORT
 // Activer CORS uniquement pour une seule origine
 //curl ifconfig.me pour connaître l'ip publique de votre pc
 const corsOptions = {
-    origin: process.env.CLIENT_URL || "http://localhost:4200", // Placer le domaine du client pour l'autoriser
+    origin: process.env.CLIENT_URL, // Placer le domaine du client pour l'autoriser
     methods: 'GET,POST,DELETE,PUT', // Restreindre les méthodes autorisées
     allowedHeaders: ["Content-Type", "Authorization"], // Définir les en-têtes acceptés
     credentials: true, // Autoriser les cookies et les headers sécurisés (dont celui qui contient le jwt)
 };
 
 console.log("CORS autorise :", process.env.CLIENT_URL);
+console.log("CORSoptions origin :", corsOptions.origin);
 app.use(cors(corsOptions));
 
 app.use(cookieParser());
