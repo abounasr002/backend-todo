@@ -18,6 +18,11 @@ dotenv.config()
 //Définition du port du serveur
 const PORT = process.env.PORT
 
+app.use((req, res, next) => {
+    console.log("Requête reçue :", req.method, req.url);
+    console.log("Origin :", req.headers.origin);
+    next();
+});
 
 // Activer CORS uniquement pour une seule origine
 //curl ifconfig.me pour connaître l'ip publique de votre pc
@@ -36,12 +41,6 @@ app.use(cookieParser());
 
 //COnfig du serveur par défaut
 app.use(express.json());
-
-app.use((req, res, next) => {
-    console.log("Requête reçue :", req.method, req.url);
-    console.log("Origin :", req.headers.origin);
-    next();
-});
 
 
 // Connecter à Sequelize
