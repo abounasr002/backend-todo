@@ -33,11 +33,9 @@ const corsOptions = {
     credentials: true, // Autoriser les cookies et les headers sécurisés (dont celui qui contient le jwt)
 };
 
-console.log("CORS autorise :", process.env.CLIENT_URL);
-console.log("CORSoptions origin :", corsOptions.origin);
 app.use(cors(corsOptions));
 
-app.use(cookieParser());
+
 
 //COnfig du serveur par défaut
 app.use(express.json());
