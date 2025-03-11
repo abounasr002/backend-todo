@@ -20,6 +20,6 @@ COPY . .
 
 #Cmd est une instruction lancée à l'instanciation du conteneur.
 # Commande à exécuter au démarrage du conteneur
-CMD ["npm", "start"]
+CMD ["npm", "prod"]
 
 
