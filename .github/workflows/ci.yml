@@ -1,7 +1,7 @@
 name: CI Pipeline
 
 on:
-  push: # Déclenche le workflow sur le push de TOUTES les branches
+  #push: # Déclenche le workflow sur le push de TOUTES les branches
   pull_request:
     branches: [ main ]
 
