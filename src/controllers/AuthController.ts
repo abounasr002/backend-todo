@@ -68,6 +68,7 @@ export async function login(req: Request, res: Response) {
 
         // 🔑 Génération du token JWT
         const token = generateToken({ id: user.id })
+        console.log("NODE_ENV =", process.env.NODE_ENV);
 
         // Stocker le token dans un cookie sécurisé
         res.cookie("jwt", token, {
