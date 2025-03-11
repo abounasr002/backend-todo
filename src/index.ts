@@ -37,6 +37,12 @@ app.use(cookieParser());
 //COnfig du serveur par défaut
 app.use(express.json());
 
+app.use((req, res, next) => {
+    console.log("Requête reçue :", req.method, req.url);
+    console.log("Origin :", req.headers.origin);
+    next();
+});
+
 
 // Connecter à Sequelize
 testConnection().then(() => syncDatabase());
