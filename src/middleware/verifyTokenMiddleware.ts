@@ -19,7 +19,7 @@ export function verifyTokenMiddleware(req: Request, res: Response, next: NextFun
 
         //le cookie contient une donnée sous la forme jwt=....
         const token = cookie.split('=')[1];
-        console.log(token);
+
 
 
         //Vérifier si le token est présent
