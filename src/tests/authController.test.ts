@@ -1,12 +1,13 @@
-import { login } from "../controllers/AuthController";
+import { login, register } from "../controllers/AuthController";
 import Utilisateur from "../models/Utilisateur.model"; // ✅ Vérifie que le chemin est correct
-import { verifyPassword } from "../utils/pwdUtils";
+import { hashPassword, verifyPassword } from "../utils/pwdUtils";
 import { generateToken } from "../utils/JWTUtils";
 
 //Arrange: préparer l'environnement de test
 //  Mock des dépendances
 jest.mock("../utils/pwdUtils", () => ({
-    verifyPassword: jest.fn()
+    verifyPassword: jest.fn(),
+    hashPassword: jest.fn()
 }));
 
 jest.mock("../utils/JWTUtils", () => ({
@@ -15,7 +16,9 @@ jest.mock("../utils/JWTUtils", () => ({
 
 jest.mock("../models/Utilisateur.model", () => ({
     findOne: jest.fn(),
+    create: jest.fn()
 }));
+
 
 // Création d'un mock propre de Sequelize
 jest.mock("sequelize", () => {
@@ -136,4 +139,71 @@ describe("login function", () => {
         expect(jsonMock).toHaveBeenCalledWith({ message: "Login réussi !" });
     });
 
+});
+
+
+describe("register function", () => {
+    let req: any;
+    let res: any;
+    let statusMock: jest.Mock;
+    let jsonMock: jest.Mock;
+
+    beforeEach(() => {
+        statusMock = jest.fn().mockReturnThis();
+        jsonMock = jest.fn();
+
+        req = { body: {} };
+        res = { status: statusMock, json: jsonMock };
+
+        jest.clearAllMocks();
+    });
+
+    // ✅ Test 1 : Retourne une erreur si les champs sont manquants
+    it("devrait retourner une erreur 400 si des champs sont manquants", async () => {
+        req.body = { email: "test@example.com" }; // Manque `nom` et `password`
+
+        await register(req, res);
+
+        expect(statusMock).toHaveBeenCalledWith(400);
+        expect(jsonMock).toHaveBeenCalledWith({
+            message: "Les champs nom, email et password sont obligatoires."
+        });
+    });
+
+    // ✅ Test 2 : Retourne une erreur si l'email ou le nom existe déjà
+    it("devrait retourner une erreur 400 si l'email ou le nom existe déjà", async () => {
+        req.body = { nom: "Test User", email: "test@example.com", password: "password123" };
+
+        // Simule une contrainte d'unicité de Sequelize
+        (Utilisateur.create as jest.Mock).mockRejectedValue({ name: "SequelizeUniqueConstraintError" });
+
+        await register(req, res);
+
+        expect(statusMock).toHaveBeenCalledWith(400);
+        expect(jsonMock).toHaveBeenCalledWith({ message: "Email ou nom déjà existant." });
+    });
+
+    // ✅ Test 3 : Inscription réussie
+    it("devrait enregistrer un nouvel utilisateur et retourner 201", async () => {
+        req.body = { nom: "Test User", email: "test@example.com", password: "password123" };
+
+        (hashPassword as jest.Mock).mockResolvedValue("hashed-password");
+        (Utilisateur.create as jest.Mock).mockResolvedValue({
+            id: 1,
+            nom: "Test User",
+            email: "test@example.com",
+            hashedPassword: "hashed-password",
+            get: function () {
+                return { id: this.id, nom: this.nom, email: this.email };
+            }
+        });
+
+        await register(req, res);
+
+        expect(statusMock).toHaveBeenCalledWith(201);
+        expect(jsonMock).toHaveBeenCalledWith({
+            message: "Utilisateur créé avec succès",
+            user: { id: 1, nom: "Test User", email: "test@example.com" }
+        });
+    });
 });
