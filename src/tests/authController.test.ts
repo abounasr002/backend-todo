@@ -5,15 +5,15 @@ import { generateToken } from "../utils/JWTUtils";
 
 //Arrange: préparer l'environnement de test
 //  Mock des dépendances
-jest.mock("../../utils/pwdUtils", () => ({
+jest.mock("../utils/pwdUtils", () => ({
     verifyPassword: jest.fn()
 }));
 
-jest.mock("../../utils/JWTUtils", () => ({
+jest.mock("../utils/JWTUtils", () => ({
     generateToken: jest.fn()
 }));
 
-jest.mock("../../models/Utilisateur.model", () => ({
+jest.mock("../models/Utilisateur.model", () => ({
     findOne: jest.fn(),
 }));
 
