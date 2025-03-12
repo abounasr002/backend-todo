@@ -3,16 +3,21 @@ import Utilisateur from "../models/Utilisateur.model"; // ✅ Vérifie que le ch
 import { verifyPassword } from "../utils/pwdUtils";
 import { generateToken } from "../utils/JWTUtils";
 
-// ✅ Mock des dépendances
-jest.mock("../utils/pwdUtils", () => ({
+//Arrange: préparer l'environnement de test
+//  Mock des dépendances
+jest.mock("../../utils/pwdUtils", () => ({
     verifyPassword: jest.fn()
 }));
 
-jest.mock("../utils/JWTUtils", () => ({
+jest.mock("../../utils/JWTUtils", () => ({
     generateToken: jest.fn()
 }));
 
-// ✅ Création d'un mock propre de Sequelize
+jest.mock("../../models/Utilisateur.model", () => ({
+    findOne: jest.fn(),
+}));
+
+// Création d'un mock propre de Sequelize
 jest.mock("sequelize", () => {
     const actualSequelize = jest.requireActual("sequelize");
 
@@ -33,10 +38,7 @@ jest.mock("sequelize", () => {
     };
 });
 
-jest.mock("../models/Utilisateur.model", () => ({
-    findOne: jest.fn(),
-}));
-
+//describe décris une série de tests qui testent la même fonction
 describe("login function", () => {
     let req: any;
     let res: any;
@@ -44,9 +46,15 @@ describe("login function", () => {
     let jsonMock: jest.Mock;
     let cookieMock: jest.Mock;
 
+    //beforeEach décris une série d'actions à faire avant chaque test. 
+    // Ici ré-initialiser les mocks pour que les tests n'interfèrent pas entre eux.
     beforeEach(() => {
+        //Ces mocks servent à simuler les requêtes et réponses HTTP:
+        //mock res.status
         statusMock = jest.fn().mockReturnThis();
+        //mock res.json() (contenu du body)
         jsonMock = jest.fn();
+        //mock res.headers.cookie: les cookies contenus dans la réponse
         cookieMock = jest.fn();
 
         req = { body: {} };
@@ -54,36 +62,60 @@ describe("login function", () => {
 
         jest.clearAllMocks();
     });
+    //fin arrange
 
+    //Act
+    //it sert à définir un test unitaire. Un cas est décris par une courte description, ensuite
+    // on vérifie que le comportement est bien celui attendu.
     it("devrait retourner une erreur 404 si l'utilisateur n'existe pas", async () => {
+
+        //simulation d'une requête entrante avec des données de connection
         req.body = { email: "test@example.com", password: "password" };
 
-        // ✅ Mock propre de `findOne` sans toucher à Sequelize
+        // Mock de `findOne` sans toucher à Sequelize ni à la BDD
+        // On simule un appel à la BDD via la fonction findOne du modèle sequelize
+        // et on force une valeur de retour pour le test: ici null
         (Utilisateur.findOne as jest.Mock).mockResolvedValue(null);
 
+        //Jest appelle la fonction login() avec les requête et réponse mockées :
+        // Utilisateur.findOne({ where: { email: req.body.email } }) est appelé. 
+        // findOne retourne null grâce au mock (Utilisateur.findOne as jest.Mock).mockResolvedValue(null);
+        //login doit envoyer une réponse avec une erreur 404 et le message "Utilisateur non trouvé" 
         await login(req, res);
 
+        //Assert
+        //On capte la réponse http générée, on vérifie son statut et son contenu
         expect(statusMock).toHaveBeenCalledWith(404);
         expect(jsonMock).toHaveBeenCalledWith({ message: "Utilisateur non trouvé" });
     });
 
+    //début d'un nouveau test
+    //act
     it("devrait retourner une erreur 401 si le mot de passe est incorrect", async () => {
+
+        //simulation d'une requête entrante avec des données de connection
         req.body = { email: "test@example.com", password: "wrongpassword" };
 
+        //Le mock de l'utilisateur.findOne simule le fait que l'on ait retrouvé l'utilisateur test@example.com
         (Utilisateur.findOne as jest.Mock).mockResolvedValue({
             id: 1,
             email: "test@example.com",
             hashedPassword: "hashedPwd"
         });
 
+        //On simule que verifyPassword renvoie une valeure fausse
         (verifyPassword as jest.Mock).mockReturnValue(false);
 
+        //login renvoie une réponse à partir des données mockées.
         await login(req, res);
 
+        //assert
+        //on vérifie le statut et le contenu de la réponse
         expect(statusMock).toHaveBeenCalledWith(401);
         expect(jsonMock).toHaveBeenCalledWith({ message: "Mot de passe invalide" });
     });
 
+    //act
     it("devrait générer un token et enregistrer un cookie", async () => {
         req.body = { email: "test@example.com", password: "password" };
 
@@ -98,6 +130,7 @@ describe("login function", () => {
 
         await login(req, res);
 
+        //assert
         expect(cookieMock).toHaveBeenCalledWith("jwt", "mocked-jwt-token", expect.any(Object));
         expect(statusMock).toHaveBeenCalledWith(200);
         expect(jsonMock).toHaveBeenCalledWith({ message: "Login réussi !" });
