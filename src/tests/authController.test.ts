@@ -158,7 +158,7 @@ describe("register function", () => {
         jest.clearAllMocks();
     });
 
-    // ✅ Test 1 : Retourne une erreur si les champs sont manquants
+    // Test 1 : Retourne une erreur si les champs sont manquants
     it("devrait retourner une erreur 400 si des champs sont manquants", async () => {
         req.body = { email: "test@example.com" }; // Manque `nom` et `password`
 
@@ -170,7 +170,7 @@ describe("register function", () => {
         });
     });
 
-    // ✅ Test 2 : Retourne une erreur si l'email ou le nom existe déjà
+    // Test 2 : Retourne une erreur si l'email ou le nom existe déjà
     it("devrait retourner une erreur 400 si l'email ou le nom existe déjà", async () => {
         req.body = { nom: "Test User", email: "test@example.com", password: "password123" };
 
@@ -183,7 +183,7 @@ describe("register function", () => {
         expect(jsonMock).toHaveBeenCalledWith({ message: "Email ou nom déjà existant." });
     });
 
-    // ✅ Test 3 : Inscription réussie
+    // Test 3 : Inscription réussie
     it("devrait enregistrer un nouvel utilisateur et retourner 201", async () => {
         req.body = { nom: "Test User", email: "test@example.com", password: "password123" };
 
