@@ -91,7 +91,7 @@ router.put('/:id', verifyTokenMiddleware, modifyTodo)
  *       500:
  *         description: Erreur interne du serveur
  */
-router.get('/false', verifyTokenMiddleware, getAllFalses)
+router.get('/false', getAllFalses)
 
 /**
  * @swagger
